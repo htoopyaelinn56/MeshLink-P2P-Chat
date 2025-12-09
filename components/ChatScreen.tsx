@@ -27,6 +27,9 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ username, roomId, onLogout }) =
   // Trystero refs
   const roomRef = useRef<any>(null);
   const sendActionRef = useRef<any>(null);
+  
+  // Keep track of peers we've exchanged presence with to avoid loops
+  const knownPeersRef = useRef<Set<string>>(new Set());
 
   // Initialize P2P Room
   useEffect(() => {
@@ -51,7 +54,8 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ username, roomId, onLogout }) =
     // Handle peer joining
     room.onPeerJoin((peerId: string) => {
       console.log(`Peer joined: ${peerId}`);
-      // Announce our presence to the new peer
+      
+      // Announce our presence to the new peer to initiate handshake
       sendPresence({ name: username, joinedAt: Date.now() }, peerId);
       
       setMessages(prev => [...prev, {
@@ -67,6 +71,8 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ username, roomId, onLogout }) =
     // Handle peer leaving
     room.onPeerLeave((peerId: string) => {
       console.log(`Peer left: ${peerId}`);
+      knownPeersRef.current.delete(peerId);
+      
       setPeers(prev => {
         const next = { ...prev };
         const name = next[peerId]?.name || 'Unknown Device';
@@ -87,6 +93,15 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ username, roomId, onLogout }) =
 
     // Handle presence (name exchange)
     getPresence((data: { name: string, joinedAt: number }, peerId: string) => {
+      const isNewPeer = !knownPeersRef.current.has(peerId);
+      
+      if (isNewPeer) {
+        knownPeersRef.current.add(peerId);
+        // IMPORTANT: If we receive presence from someone we don't know, 
+        // we must send ours back so they know us too (bidirectional handshake).
+        sendPresence({ name: username, joinedAt: Date.now() }, peerId);
+      }
+
       setPeers(prev => ({
         ...prev,
         [peerId]: { name: data.name, joinedAt: data.joinedAt }
@@ -94,7 +109,11 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ username, roomId, onLogout }) =
     });
 
     // Broadcast our presence to existing peers immediately
-    setTimeout(() => setConnectionStatus('connected'), 1500);
+    // We also do a broadcast to everyone just in case onPeerJoin didn't catch someone
+    setTimeout(() => {
+        setConnectionStatus('connected');
+        sendPresence({ name: username, joinedAt: Date.now() });
+    }, 1000);
 
     return () => {
       room.leave();
