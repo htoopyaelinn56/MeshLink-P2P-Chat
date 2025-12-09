@@ -1,0 +1,8 @@
+{
+  "name": "MeshLink P2P Chat",
+  "description": "Serverless peer-to-peer chat application that discovers devices on a shared frequency. Share text, images, files, and voice notes securely.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
