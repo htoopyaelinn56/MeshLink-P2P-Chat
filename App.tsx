@@ -27,7 +27,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="h-screen w-screen bg-background">
+    <div className="h-[100dvh] w-screen bg-background overflow-hidden">
       {!chatState.isJoined ? (
         <WelcomeScreen onJoin={handleJoin} />
       ) : (

@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Send, Image as ImageIcon, Mic, Paperclip, X, Loader2, Wifi, LogOut } from 'lucide-react';
-import { Message, MessageType, User, PeerState } from '../types';
+import React, { useState, useEffect, useRef } from 'react';
+import { Send, Mic, Paperclip, X, Wifi, LogOut, Users } from 'lucide-react';
+import { Message, MessageType, PeerState } from '../types';
 import { generateId, fileToBase64 } from '../utils';
 import MessageBubble from './MessageBubble';
-import { joinRoom } from 'trystero'; // Expecting the environment to resolve this
+import { joinRoom } from 'trystero';
 
 interface ChatScreenProps {
   username: string;
@@ -17,6 +17,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ username, roomId, onLogout }) =
   const [peers, setPeers] = useState<PeerState>({});
   const [isRecording, setIsRecording] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected'>('connecting');
+  const [showMobilePeers, setShowMobilePeers] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -93,9 +94,6 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ username, roomId, onLogout }) =
     });
 
     // Broadcast our presence to existing peers immediately
-    // Note: Trystero might take a moment to find peers, so we can't broadcast instantly to everyone if we haven't found them.
-    // However, onPeerJoin handles new folks. For existing folks, Trystero usually syncs up.
-    // We'll set status to connected after a brief timeout to simulate "ready" state or when first peer is found.
     setTimeout(() => setConnectionStatus('connected'), 1500);
 
     return () => {
@@ -146,7 +144,6 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ username, roomId, onLogout }) =
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // 2MB limit for this demo to ensure base64 stability in React state
     if (file.size > 2 * 1024 * 1024) {
       alert("File too large. Please send files under 2MB for this demo.");
       return;
@@ -160,7 +157,6 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ username, roomId, onLogout }) =
       console.error("Error reading file:", err);
     }
     
-    // Reset input
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -181,8 +177,6 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ username, roomId, onLogout }) =
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         const base64 = await fileToBase64(audioBlob);
         sendMessage(MessageType.AUDIO, base64);
-        
-        // Stop all tracks
         stream.getTracks().forEach(track => track.stop());
       };
 
@@ -201,22 +195,58 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ username, roomId, onLogout }) =
     }
   };
 
+  const renderPeerList = () => (
+    <ul className="space-y-3">
+      {Object.keys(peers).length === 0 ? (
+          <li className="text-sm text-slate-600 italic">Scanning...</li>
+      ) : (
+          Object.entries(peers).map(([id, peer]) => {
+              const p = peer as { name: string; joinedAt: number };
+              return (
+              <li key={id} className="flex items-center gap-3 p-2 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                  <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-xs font-bold text-white">
+                      {p.name.substring(0, 2).toUpperCase()}
+                  </div>
+                  <div className="overflow-hidden">
+                      <p className="text-sm font-medium truncate text-slate-200">{p.name}</p>
+                      <p className="text-[10px] text-slate-500">Connected</p>
+                  </div>
+              </li>
+          )})
+      )}
+    </ul>
+  );
+
   return (
-    <div className="flex flex-col h-screen bg-background text-slate-200">
+    <div className="flex flex-col h-full bg-background text-slate-200">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 bg-surface border-b border-slate-700 shadow-md z-10">
+      <header className="flex items-center justify-between px-4 md:px-6 py-4 bg-surface border-b border-slate-700 shadow-md z-10">
         <div className="flex items-center gap-3">
             <div className={`w-3 h-3 rounded-full ${connectionStatus === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-yellow-500'}`}></div>
             <div>
                 <h2 className="font-bold text-lg text-white leading-tight">#{roomId}</h2>
                 <div className="text-xs text-slate-400 flex items-center gap-1">
                     <Wifi size={12} />
-                    {Object.keys(peers).length} Peer{Object.keys(peers).length !== 1 && 's'} Found
+                    <span className="hidden md:inline">
+                      {Object.keys(peers).length} Peer{Object.keys(peers).length !== 1 && 's'} Found
+                    </span>
+                    <span className="md:hidden">
+                      {Object.keys(peers).length} Online
+                    </span>
                 </div>
             </div>
         </div>
         
         <div className="flex items-center gap-2">
+            {/* Mobile Peer Toggle */}
+            <button
+              onClick={() => setShowMobilePeers(!showMobilePeers)}
+              className="lg:hidden p-2 hover:bg-slate-700 rounded-full transition-colors text-slate-400 hover:text-blue-400"
+              title="View Connected Devices"
+            >
+              <Users size={20} />
+            </button>
+
             <div className="hidden md:flex flex-col items-end mr-4">
                 <span className="text-sm font-medium text-white">{username}</span>
                 <span className="text-[10px] text-slate-400 uppercase tracking-wider">You</span>
@@ -254,33 +284,40 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ username, roomId, onLogout }) =
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Peer List (Desktop Sidebar - Absolute on mobile but hidden) */}
+        {/* Desktop Peer Sidebar */}
         <div className="hidden lg:block w-64 bg-surface border-l border-slate-700 p-4 overflow-y-auto">
             <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Connected Devices</h3>
-            <ul className="space-y-3">
-                {Object.keys(peers).length === 0 ? (
-                    <li className="text-sm text-slate-600 italic">Scanning...</li>
-                ) : (
-                    Object.entries(peers).map(([id, peer]) => {
-                        const p = peer as { name: string; joinedAt: number };
-                        return (
-                        <li key={id} className="flex items-center gap-3 p-2 rounded-lg bg-slate-800/50 border border-slate-700/50">
-                            <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-xs font-bold text-white">
-                                {p.name.substring(0, 2).toUpperCase()}
-                            </div>
-                            <div className="overflow-hidden">
-                                <p className="text-sm font-medium truncate text-slate-200">{p.name}</p>
-                                <p className="text-[10px] text-slate-500">Connected</p>
-                            </div>
-                        </li>
-                    )})
-                )}
-            </ul>
+            {renderPeerList()}
         </div>
+
+        {/* Mobile Peer Drawer Overlay */}
+        {showMobilePeers && (
+          <div className="absolute inset-0 z-50 bg-surface/95 backdrop-blur-sm p-6 lg:hidden flex flex-col animate-in slide-in-from-right duration-200">
+             <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Users size={20} className="text-primary"/> 
+                  Connected Devices
+                </h3>
+                <button 
+                  onClick={() => setShowMobilePeers(false)}
+                  className="p-2 bg-slate-800 rounded-full text-slate-400 hover:text-white"
+                >
+                  <X size={20} />
+                </button>
+             </div>
+             <div className="flex-1 overflow-y-auto">
+                {renderPeerList()}
+             </div>
+             <div className="mt-4 pt-4 border-t border-slate-700 text-center">
+                <span className="text-sm font-medium text-white block">{username}</span>
+                <span className="text-xs text-slate-500 uppercase tracking-wider">Your Device</span>
+             </div>
+          </div>
+        )}
       </div>
 
       {/* Input Area */}
-      <div className="p-4 bg-surface border-t border-slate-700">
+      <div className="p-3 md:p-4 bg-surface border-t border-slate-700 pb-[env(safe-area-inset-bottom)]">
         <div className="max-w-4xl mx-auto flex items-end gap-2 bg-slate-900/50 p-2 rounded-xl border border-slate-700/50 focus-within:border-primary/50 transition-colors">
           
           <input 
@@ -303,7 +340,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ username, roomId, onLogout }) =
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={handleKeyPress}
             placeholder="Type a message..."
-            className="flex-1 bg-transparent border-none focus:ring-0 text-white placeholder-slate-500 resize-none max-h-32 py-3 min-h-[44px]"
+            className="flex-1 bg-transparent border-none focus:ring-0 text-white placeholder-slate-500 resize-none max-h-32 py-3 min-h-[44px] text-sm md:text-base"
             rows={1}
             style={{ height: 'auto', minHeight: '44px' }}
           />

@@ -17,32 +17,32 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onJoin }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-b from-background to-surface">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 text-primary mb-4 animate-pulse-slow">
-            <Radio size={32} />
+    <div className="flex flex-col items-center justify-center h-full w-full overflow-y-auto p-4 bg-gradient-to-b from-background to-surface">
+      <div className="w-full max-w-md space-y-6 my-auto">
+        <div className="text-center space-y-2 mt-8 md:mt-0">
+          <div className="inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-primary/20 text-primary mb-2 md:mb-4 animate-pulse-slow">
+            <Radio size={28} className="md:w-8 md:h-8" />
           </div>
-          <h1 className="text-4xl font-bold tracking-tight text-white">MeshLink</h1>
-          <p className="text-slate-400">Serverless P2P Device Discovery & Chat</p>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white">MeshLink</h1>
+          <p className="text-sm md:text-base text-slate-400">Serverless P2P Device Discovery & Chat</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 text-center text-xs text-slate-500 my-8">
-          <div className="flex flex-col items-center p-3 rounded-lg bg-surface/50">
-            <Shield className="mb-2 text-emerald-400" size={20} />
-            <span>End-to-End Encrypted</span>
+        <div className="grid grid-cols-3 gap-2 text-center text-[10px] md:text-xs text-slate-500 my-6">
+          <div className="flex flex-col items-center p-2 rounded-lg bg-surface/50 justify-center h-full">
+            <Shield className="mb-1 text-emerald-400" size={18} />
+            <span className="leading-tight">End-to-End Encrypted</span>
           </div>
-          <div className="flex flex-col items-center p-3 rounded-lg bg-surface/50">
-            <Users className="mb-2 text-blue-400" size={20} />
-            <span>No Central Server</span>
+          <div className="flex flex-col items-center p-2 rounded-lg bg-surface/50 justify-center h-full">
+            <Users className="mb-1 text-blue-400" size={18} />
+            <span className="leading-tight">No Central Server</span>
           </div>
-          <div className="flex flex-col items-center p-3 rounded-lg bg-surface/50">
-            <Scan className="mb-2 text-purple-400" size={20} />
-            <span>Auto Discovery</span>
+          <div className="flex flex-col items-center p-2 rounded-lg bg-surface/50 justify-center h-full">
+            <Scan className="mb-1 text-purple-400" size={18} />
+            <span className="leading-tight">Auto Discovery</span>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 bg-surface p-8 rounded-2xl border border-slate-700/50 shadow-xl">
+        <form onSubmit={handleSubmit} className="space-y-5 bg-surface p-6 rounded-2xl border border-slate-700/50 shadow-xl mb-8">
           <div className="space-y-2">
             <label htmlFor="username" className="text-sm font-medium text-slate-300">
               Display Name
