@@ -1,7 +1,7 @@
 import React from 'react';
 import { Message, MessageType } from '../types';
 import { formatTime } from '../utils';
-import { FileIcon, Play, Download, User } from 'lucide-react';
+import { FileIcon, Play, Download } from 'lucide-react';
 
 interface MessageBubbleProps {
   message: Message;
@@ -11,8 +11,8 @@ interface MessageBubbleProps {
 const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isSelf }) => {
   if (message.type === MessageType.SYSTEM) {
     return (
-      <div className="flex justify-center my-4">
-        <span className="bg-slate-800 text-slate-400 text-xs py-1 px-3 rounded-full border border-slate-700/50">
+      <div className="flex justify-center my-4 opacity-80">
+        <span className="bg-surface-highlight text-text-muted text-[10px] font-medium py-1 px-4 rounded-full border border-border shadow-sm">
           {message.content}
         </span>
       </div>
@@ -20,66 +20,68 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isSelf }) => {
   }
 
   return (
-    <div className={`flex flex-col mb-4 ${isSelf ? 'items-end' : 'items-start'}`}>
-      <div className={`flex items-end max-w-[85%] md:max-w-[70%] ${isSelf ? 'flex-row-reverse' : 'flex-row'}`}>
-        {/* Avatar Placeholder */}
-        <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold mb-1
-          ${isSelf ? 'bg-primary text-white ml-2' : 'bg-slate-600 text-slate-200 mr-2'}`}>
+    <div className={`flex flex-col mb-4 group ${isSelf ? 'items-end' : 'items-start'}`}>
+      <div className={`flex items-end max-w-[85%] md:max-w-[70%] gap-2 ${isSelf ? 'flex-row-reverse' : 'flex-row'}`}>
+        
+        {/* Avatar */}
+        <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm
+          ${isSelf ? 'bg-primary text-white' : 'bg-surface-highlight text-text-muted border border-border'}`}>
           {message.senderName.substring(0, 2).toUpperCase()}
         </div>
 
         <div className={`flex flex-col ${isSelf ? 'items-end' : 'items-start'}`}>
-          <div className="text-xs text-slate-500 mb-1 px-1">
-            {message.senderName}
-          </div>
+          {!isSelf && (
+             <div className="text-[10px] font-semibold text-text-muted mb-1 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+               {message.senderName}
+             </div>
+          )}
           
-          <div className={`relative px-4 py-3 rounded-2xl shadow-sm ${
+          <div className={`relative px-4 py-3 shadow-sm ${
             isSelf 
-              ? 'bg-primary text-white rounded-tr-sm' 
-              : 'bg-surface border border-slate-700 text-slate-200 rounded-tl-sm'
+              ? 'bg-primary text-white rounded-2xl rounded-tr-none' 
+              : 'bg-surface border border-border text-text-main rounded-2xl rounded-tl-none'
           }`}>
             
             {/* Text Message */}
             {message.type === MessageType.TEXT && (
-              <p className="whitespace-pre-wrap break-words">{message.content}</p>
+              <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{message.content}</p>
             )}
 
             {/* Image Message */}
             {message.type === MessageType.IMAGE && (
-              <div className="space-y-2">
+              <div className="mt-1">
                 <img 
                   src={message.content} 
                   alt="Shared" 
-                  className="max-w-full rounded-lg max-h-64 object-cover border border-black/10" 
+                  className="max-w-full rounded-lg max-h-72 object-cover border border-black/10 shadow-sm" 
                 />
               </div>
             )}
 
             {/* Audio Message */}
             {message.type === MessageType.AUDIO && (
-              <div className="flex items-center gap-3 min-w-[200px]">
-                <div className="p-2 bg-black/20 rounded-full">
-                  <Play size={20} fill="currentColor" className="ml-1" />
+              <div className="flex items-center gap-3 min-w-[200px] py-1">
+                <div className={`p-2 rounded-full ${isSelf ? 'bg-white/20' : 'bg-surface-highlight'}`}>
+                  <Play size={16} fill="currentColor" className={isSelf ? 'text-white' : 'text-primary'} />
                 </div>
                 <div className="flex flex-col flex-1">
-                   <audio controls src={message.content} className="w-full h-8 opacity-60" /> 
-                   <span className="text-xs opacity-70 mt-1">Voice Note</span>
+                   <audio controls src={message.content} className="w-full h-8 opacity-80 scale-95 origin-left" /> 
                 </div>
               </div>
             )}
 
             {/* File Message */}
             {message.type === MessageType.FILE && (
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-black/20 rounded-lg">
-                  <FileIcon size={24} />
+              <div className="flex items-center gap-3 py-1">
+                <div className={`p-3 rounded-xl ${isSelf ? 'bg-white/20' : 'bg-surface-highlight'}`}>
+                  <FileIcon size={24} className={isSelf ? 'text-white' : 'text-primary'} />
                 </div>
                 <div className="flex flex-col overflow-hidden">
-                  <span className="font-medium truncate max-w-[150px]">{message.fileName}</span>
+                  <span className="font-semibold text-sm truncate max-w-[160px]">{message.fileName}</span>
                   <a 
                     href={message.content} 
                     download={message.fileName}
-                    className="text-xs underline opacity-80 hover:opacity-100 flex items-center mt-1"
+                    className={`text-xs underline flex items-center mt-1 ${isSelf ? 'text-white/80 hover:text-white' : 'text-primary hover:text-blue-600'}`}
                   >
                     <Download size={12} className="mr-1" /> Download
                   </a>
@@ -88,7 +90,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isSelf }) => {
             )}
 
             {/* Timestamp */}
-            <div className={`text-[10px] mt-1 text-right ${isSelf ? 'text-blue-200' : 'text-slate-500'}`}>
+            <div className={`text-[9px] mt-1.5 text-right font-medium ${isSelf ? 'text-white/70' : 'text-text-muted'}`}>
               {formatTime(message.timestamp)}
             </div>
           </div>

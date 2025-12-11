@@ -2,41 +2,78 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>MeshLink P2P Chat</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
+        darkMode: 'class',
         theme: {
           extend: {
             colors: {
-              background: '#0f172a',
-              surface: '#1e293b',
-              primary: '#3b82f6',
-              secondary: '#64748b',
-              accent: '#f43f5e',
+              background: 'rgb(var(--bg-background) / <alpha-value>)',
+              surface: 'rgb(var(--bg-surface) / <alpha-value>)',
+              'surface-highlight': 'rgb(var(--bg-surface-highlight) / <alpha-value>)',
+              primary: 'rgb(var(--color-primary) / <alpha-value>)',
+              secondary: 'rgb(var(--color-secondary) / <alpha-value>)',
+              border: 'rgb(var(--color-border) / <alpha-value>)',
+              text: {
+                main: 'rgb(var(--text-main) / <alpha-value>)',
+                muted: 'rgb(var(--text-muted) / <alpha-value>)',
+              }
             },
             animation: {
               'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'slide-up': 'slideUp 0.3s ease-out forwards',
+            },
+            keyframes: {
+              slideUp: {
+                '0%': { transform: 'translateY(10px)', opacity: 0 },
+                '100%': { transform: 'translateY(0)', opacity: 1 },
+              }
             }
           },
         },
       }
     </script>
     <style>
-      /* Custom scrollbar for Webkit */
+      :root {
+        /* Light Theme (Default) */
+        --bg-background: 241 245 249; /* slate-100 */
+        --bg-surface: 255 255 255;    /* white */
+        --bg-surface-highlight: 248 250 252; /* slate-50 */
+        --color-primary: 59 130 246;  /* blue-500 */
+        --color-secondary: 100 116 139; /* slate-500 */
+        --color-border: 226 232 240;  /* slate-200 */
+        --text-main: 15 23 42;        /* slate-900 */
+        --text-muted: 100 116 139;    /* slate-500 */
+      }
+
+      .dark {
+        /* Dark Theme */
+        --bg-background: 15 23 42;    /* slate-900 */
+        --bg-surface: 30 41 59;       /* slate-800 */
+        --bg-surface-highlight: 51 65 85; /* slate-700 */
+        --color-primary: 96 165 250;  /* blue-400 */
+        --color-secondary: 148 163 184; /* slate-400 */
+        --color-border: 51 65 85;     /* slate-700 */
+        --text-main: 241 245 249;     /* slate-100 */
+        --text-muted: 148 163 184;    /* slate-400 */
+      }
+
+      /* Custom scrollbar */
       ::-webkit-scrollbar {
         width: 6px;
       }
       ::-webkit-scrollbar-track {
-        background: #0f172a; 
+        background: transparent; 
       }
       ::-webkit-scrollbar-thumb {
-        background: #334155; 
-        border-radius: 3px;
+        background: rgb(var(--color-border)); 
+        border-radius: 10px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #475569; 
+        background: rgb(var(--text-muted) / 0.5); 
       }
     </style>
   <script type="importmap">
@@ -51,7 +88,7 @@
 }
 </script>
 </head>
-  <body class="bg-background text-slate-200 antialiased overflow-hidden">
+  <body class="bg-background text-text-main antialiased overflow-hidden transition-colors duration-300">
     <div id="root"></div>
   </body>
 </html>
