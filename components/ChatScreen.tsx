@@ -33,6 +33,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ username, roomId, onLogout, isD
 
   // Initialize P2P Room
   useEffect(() => {
+    // Note: ensure the appId matches the one used by other peers.
     const config = { appId: 'meshlink-demo-app' };
     const room = joinRoom(config, roomId);
     roomRef.current = room;
@@ -88,10 +89,15 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ username, roomId, onLogout, isD
       }));
     });
 
+    // Send presence immediately for fast signaling
+    sendPresence({ name: username, joinedAt: Date.now() });
+
+    // Set connected status quickly as MQTT is fast
     setTimeout(() => {
         setConnectionStatus('connected');
+        // Redundant announcement to ensure delivery
         sendPresence({ name: username, joinedAt: Date.now() });
-    }, 1000);
+    }, 500);
 
     return () => {
       room.leave();

@@ -21,16 +21,17 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onJoin, isDark, toggleThe
   return (
     <div className="flex flex-col items-center justify-center h-full w-full overflow-y-auto p-4 bg-background transition-colors duration-300 relative">
       
-      {/* Theme Toggle Top Right */}
-      <button 
-        type="button"
-        onClick={toggleTheme}
-        className="absolute top-6 right-6 z-50 p-3 rounded-full bg-surface shadow-lg text-text-muted hover:text-primary transition-all hover:scale-110 active:scale-95 border border-border cursor-pointer"
-        title="Toggle Theme"
-        aria-label="Toggle color theme"
-      >
-        {isDark ? <Sun size={20} /> : <Moon size={20} />}
-      </button>
+      {/* Top Right Controls */}
+      <div className="absolute top-6 right-6 z-50 flex items-center gap-3">
+        <button 
+          type="button"
+          onClick={toggleTheme}
+          className="p-3 rounded-full bg-surface shadow-lg text-text-muted hover:text-primary transition-all hover:scale-110 active:scale-95 border border-border cursor-pointer"
+          title="Toggle Theme"
+        >
+          {isDark ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+      </div>
 
       <div className="w-full max-w-md space-y-6 my-auto animate-slide-up relative z-10">
         
@@ -109,6 +110,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onJoin, isDark, toggleThe
           By joining, you connect directly to other devices on this frequency.
         </p>
       </div>
+
     </div>
   );
 };
